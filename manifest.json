@@ -12,7 +12,11 @@
     ],
     "action": {
       "default_popup": "popup.html",
-      "default_icon": "assets/hello.png"
+      "default_icon": "assets/icon16.png"
+    },
+    "icons": {
+        "16": "assets/icon16.png",
+        "128": "assets/icon128.png"
     }
     
 }
