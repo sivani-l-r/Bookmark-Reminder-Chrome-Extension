@@ -1,0 +1,12 @@
+{
+    "name": "Web Bookmark Reminder",
+    "version": "1.0.0",
+    "description": "get reminders for websites you Bookmark",
+    "manifest_version": 3,
+    "author": "Sivani",
+    "action":{
+        "default_popup": "index.html",
+        "default_title": "Latest Covid Report",
+        "default_icon": "assets/hello.png"
+    }
+}
