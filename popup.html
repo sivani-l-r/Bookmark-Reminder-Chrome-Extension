@@ -6,54 +6,119 @@
   <title>Bookmark Reminder</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> <!-- Font Awesome for icons -->
   <style>
+    /* CSS */
     body {
-      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       margin: 0;
       padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       height: 100vh;
-      background-color: #f4f4f4;
     }
+
     #container {
-      text-align: center;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
     }
+
     h1 {
       color: #333;
+      margin-bottom: 30px;
+      font-size: 24px;
+    }
+
+    p {
+      color: #666;
       margin-bottom: 20px;
     }
+
+    input[type="date"],
+    input[type="time"],
+    button {
+      border: none;
+      border-radius: 6px;
+      margin-top: 20px;
+      padding: 12px 20px;
+      width: calc(100% - 40px);
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    input[type="date"],
+    input[type="time"] {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+    }
+
     #submitBtn {
       background-color: #007bff;
       color: #fff;
-      padding: 12px 24px;
-      font-size: 16px;
-      border: none;
-      border-radius: 6px;
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
+
     #submitBtn:hover {
       background-color: #0056b3;
     }
-    #userSuccessMessage {
-      margin-top: 20px;
-      color: #28a745;
+
+    #creditsBtn {
+      background-color: #ffc107; 
+      color: #333; 
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      font-size: 14px; 
+      padding: 8px 16px; 
+      border-radius: 6px; 
     }
+
+    #creditsBtn:hover {
+      background-color: #ffca28; 
+    }
+
+    #userSuccessMessageContainer {
+      display: none; 
+      border: 2px solid #28a745; 
+      border-radius: 6px; 
+      padding: 10px; 
+      margin-top: 20px; 
+    }
+
+    #userSuccessMessage {
+      color: #28a745;
+      font-size: 16px;
+    }
+
     .icon {
       margin-right: 8px;
     }
-    #datePicker {
+
+    #creditsContainer {
+      display: none; 
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 20px;
       margin-top: 20px;
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
+      text-align: left;
+      font-size: 14px;
+      width: 100%; 
+    }
+
+    #creditsContainer a {
+      display: block;
+      margin-bottom: 10px;
+      color: #007bff;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    #creditsContainer a:hover {
+      color: #0056b3;
     }
   </style>
 </head>
@@ -61,14 +126,24 @@
   <div id="container">
     <h1><i class="fas fa-bookmark icon"></i> Bookmark Reminder</h1>
     <p id="currentWebsite">You're about to bookmark the current website.</p>
-    <input type="date" id="datePicker">
-    <input type="time" id="timePicker">
+    <input type="date" id="datePicker" placeholder="Select date">
+    <input type="time" id="timePicker" placeholder="Select time">
     <button id="submitBtn">Bookmark</button>
-    <button id="click">Notif</button>
-    <p id="userSuccessMessage"></p>
+    <button id="creditsBtn">Credits</button>
+    <div id="userSuccessMessageContainer">
+      <p id="userSuccessMessage"></p>
+    </div>
   </div>
+
+  <!-- Credits Container -->
+  <div id="creditsContainer">
+    <h2>Credits</h2>
+    <a href="https://www.flaticon.com/free-icons/seo-and-web" title="seo and web icons" target="_blank">Icons by Pixel perfect - Flaticon</a>
+    <a href="https://www.flaticon.com/free-icons/bell" title="bell icons" target="_blank">Bell icons created by Freepik - Flaticon</a>
+  </div>
+
   <script src="scripts/popup.js"></script>
-  <a href="https://www.flaticon.com/free-icons/seo-and-web" title="seo and web icons">Icons by Pixel perfect - Flaticon</a>
-  <a href="https://www.flaticon.com/free-icons/bell" title="bell icons">Bell icons created by Freepik - Flaticon</a>
+  
+ 
 </body>
 </html>
