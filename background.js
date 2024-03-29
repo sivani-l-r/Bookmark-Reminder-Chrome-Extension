@@ -26,7 +26,7 @@ function saveBookmark(data) {
         var currentTab = tabs[0];
         var currentUrl = currentTab.url;
         var formattedReminderDateTime = data.formattedReminderDate + ' ' + data.formattedReminderTime;
-
+        var reminderNote = data.note;
         chrome.bookmarks.search({ title: "Bookmark Reminder Extension" }, function (results) 
         {
             if (results.length > 0) 
@@ -45,7 +45,8 @@ function saveBookmark(data) {
                 title: currentTab.title,
                 url: currentUrl,
                 reminderDateTime: formattedReminderDateTime,
-                bookmarkId: generateUniqueId() 
+                bookmarkId: generateUniqueId() ,
+                note: data.note
             };
             storeBookmark(bookmarkData);
             scheduleNotificationsFromStorage();
@@ -93,7 +94,8 @@ function reminderNotif(bookmarkData) {
         type: "basic",
         iconUrl: "assets/bell.png",
         title: "📌 BookMark Reminder!",
-        message: "Website Title :-" + bookmarkData.title + "\n Url :-" + bookmarkData.url
+        message: "Website Title: " + bookmarkData.title + "\nURL: " + bookmarkData.url + "\nNote: " + bookmarkData.note
+
     };
     chrome.notifications.create(notificationOptions, function(notificationId) {
         chrome.storage.sync.get({ bookmarks: [] }, function(result) {

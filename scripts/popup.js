@@ -2,13 +2,15 @@ document.addEventListener("DOMContentLoaded", function () {
     var submitBtn = document.getElementById("submitBtn");
     var reminderDate = document.getElementById("datePicker");
     var reminderTime = document.getElementById("timePicker");
+    var reminderNote = document.getElementById("customMessage");
 
     submitBtn.addEventListener("click", function () {
         chrome.runtime.sendMessage({
             action: "saveBookmark",
             data: {
                 formattedReminderDate: reminderDate.value,
-                formattedReminderTime: reminderTime.value
+                formattedReminderTime: reminderTime.value,
+                note: reminderNote.value
             }
         });
     });

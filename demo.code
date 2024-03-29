@@ -1,126 +1,74 @@
-document.addEventListener("DOMContentLoaded", function () {
-    var submitBtn = document.getElementById("submitBtn");
-    var successMessage = document.getElementById("userSuccessMessage");
-    var reminderDate = document.getElementById("datePicker");
-    var reminderTime = document.getElementById("timePicker");
-
-    submitBtn.addEventListener("click", function () {
-        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-            var currentTab = tabs[0];
-            var currentUrl = currentTab.url;
-
-            var formattedReminderDate = reminderDate.value;
-            var formattedReminderTime = reminderTime.value;
-
-            var formattedReminderDateTime = formattedReminderDate + ' ' + formattedReminderTime;
-
-            // Bookmarking logic
-            chrome.bookmarks.search({ title: "Bookmark Reminder Extension" }, function (results) {
-                if (results.length > 0) 
-                {
-                    var existingFolder = results[0];
-                    createBookmark(existingFolder.id, currentTab.title, currentUrl, formattedReminderDateTime);
-                } 
-                else 
-                {
-                    chrome.bookmarks.create({
-                        title: "Bookmark Reminder Extension"
-                    }, function (newFolder) {
-                        createBookmark(newFolder.id, currentTab.title, currentUrl, formattedReminderDateTime);
-                    });
-                }
-
-                var bookmarkData = {
-                    title: currentTab.title,
-                    url: currentUrl,
-                    reminderDateTime: formattedReminderDateTime
-                };
-                storeBookmark(bookmarkData);
-
-                // Schedule notification if necessary
-                scheduleNotification(bookmarkData);
-                // var reminderTimestamp = new Date(formattedReminderDateTime).getTime();
-                // console.log(reminderTimestamp);
-                // var now = Date.now();
-                // console.log(now);
-                // var delay = reminderTimestamp - now;
-                // console.log(delay);
-
-                // if(delay<=0)
-                // {
-                //     setTimeout(function () {
-                //         var notificationOptions = {
-                //             type: "basic",
-                //             iconUrl: "assets/hello.png", 
-                //             title: "Bookmark Reminder!",
-                //             message: "It's time to visit the bookmarked website: "
-                //         };
-                //         chrome.notifications.create(notificationOptions);
-                //     }, delay);
-                //     // reminderNotif(currentTab.title, reminderTimestamp,now,delay);
-                // }
-            });            
-           
-        });
-    });
-});
-
-function storeBookmark(bookmarkData) {
-    chrome.storage.sync.get({ bookmarks: [] }, function (result) {
-        var bookmarks = result.bookmarks;
-        bookmarks.push(bookmarkData);
-        chrome.storage.sync.set({ bookmarks: bookmarks }, function () {
-            console.log("Bookmark saved:", bookmarkData);
-            displaySuccessMessage("Bookmark saved successfully to: \nFolder - Bookmark Reminder Extension \nTab - " + bookmarkData.title);
-        });
-    });
-}
-
-function scheduleNotification(bookmarkData) {
-    var reminderTimestamp = new Date(bookmarkData.reminderDateTime).getTime();
-    var now = Date.now();
-    var delay = reminderTimestamp - now;
-
-    if (delay <= 0) {
-        reminderNotif(bookmarkData.title);
-    } else {
-        setTimeout(function () {
-            reminderNotif(bookmarkData.title);
-        }, delay);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookmark Reminder</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> <!-- Font Awesome for icons -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f4f4f4;
     }
-}
-
-function reminderNotif(websiteName) {
-    var notificationOptions = {
-        type: "basic",
-        iconUrl: "assets/hello.png",
-        title: "Bookmark Reminder!",
-        message: "It's time to visit the bookmarked website: " + websiteName
-    };
-    chrome.notifications.create(notificationOptions);
-}
-
-
-function createBookmark(parentId, title, url, reminderDateTime) {
-    var successMessage = document.getElementById("userSuccessMessage");
-    chrome.bookmarks.create({
-        parentId: parentId,
-        title: title + ' - ' + reminderDateTime,
-        url: url,
-    }, function (newBookmark) {
-        console.log("Bookmark saved:", newBookmark);
-        chrome.storage.sync.get({ bookmarks: [] }, function (result) {
-            var bookmarks = result.bookmarks;
-            console.log("All Bookmarks:");
-            bookmarks.forEach(function(bookmark) {
-                console.log(bookmark);
-            });
-        });
-    });
-}
-
-
-function displaySuccessMessage(message) {
-    var successMessage = document.getElementById("userSuccessMessage");
-    successMessage.innerText = message;
-}
+    #container {
+      text-align: center;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      background-color: #fff;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    #submitBtn {
+      background-color: #007bff;
+      color: #fff;
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #submitBtn:hover {
+      background-color: #0056b3;
+    }
+    #userSuccessMessage {
+      margin-top: 20px;
+      color: #28a745;
+    }
+    .icon {
+      margin-right: 8px;
+    }
+    #datePicker {
+      margin-top: 20px;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h1><i class="fas fa-bookmark icon"></i> Bookmark Reminder</h1>
+    <p id="currentWebsite">You're about to bookmark the current website.</p>
+    <input type="date" id="datePicker">
+    <input type="time" id="timePicker">
+    <button id="submitBtn">Bookmark</button>
+    <button id="click">Notif</button>
+    <p id="userSuccessMessage"></p>
+  </div>
+  <script src="scripts/popup.js"></script>
+  <a href="https://www.flaticon.com/free-icons/seo-and-web" title="seo and web icons">Icons by Pixel perfect - Flaticon</a>
+  <a href="https://www.flaticon.com/free-icons/bell" title="bell icons">Bell icons created by Freepik - Flaticon</a>
+</body>
+</html>
