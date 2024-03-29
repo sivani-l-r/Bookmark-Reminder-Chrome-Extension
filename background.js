@@ -45,12 +45,18 @@ function saveBookmark(data) {
                 title: currentTab.title,
                 url: currentUrl,
                 reminderDateTime: formattedReminderDateTime,
-                bookmarkId: Date.now()
+                bookmarkId: generateUniqueId() // Generate unique bookmark ID
             };
             storeBookmark(bookmarkData);
             scheduleNotificationsFromStorage();
         });
     });
+}
+
+// Function to generate a unique ID
+function generateUniqueId() {
+    // Use a combination of timestamp and a random number to create a unique ID
+    return Date.now().toString() + '-' + Math.floor(Math.random() * 1000);
 }
 
 function storeBookmark(bookmarkData) {
