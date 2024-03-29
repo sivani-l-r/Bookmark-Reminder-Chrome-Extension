@@ -1,29 +1,26 @@
-chrome.storage.sync.get({ bookmarks: [] }, function (result) {
-    var bookmarks = result.bookmarks;
-    console.log("All Bookmarks:");
-    bookmarks.forEach(function(bookmark) {
-        console.log(bookmark);
-    });
+// Set up periodic alarm to keep service worker active
+chrome.alarms.create({ periodInMinutes: 1 });
+chrome.alarms.onAlarm.addListener(() => {
+    scheduleNotificationsFromStorage();
 });
 
-chrome.storage.sync.get({ bookmarks: [] }, function (result) {
-    var bookmarks = result.bookmarks;
-    bookmarks.forEach(function(bookmark) {
-        scheduleNotification(bookmark);
+// Retrieve bookmarks from storage and schedule notifications
+function scheduleNotificationsFromStorage() {
+    chrome.storage.sync.get({ bookmarks: [] }, function (result) {
+        var bookmarks = result.bookmarks;
+        bookmarks.forEach(function(bookmark) {
+            scheduleNotification(bookmark);
+        });
     });
-});
-
-setInterval(scheduleNotificationsFromStorage, 60000)
+}
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    console.log("background.js - onMessage");
     if (message.action === "saveBookmark") {
         saveBookmark(message.data);
     }
 });
 
 function saveBookmark(data) {
-    console.log("saveBookmark - bg.js")
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         var currentTab = tabs[0];
         var currentUrl = currentTab.url;
@@ -47,7 +44,7 @@ function saveBookmark(data) {
                 title: currentTab.title,
                 url: currentUrl,
                 reminderDateTime: formattedReminderDateTime,
-                bookmarkId: generateUniqueId() // Generate unique bookmark ID
+                bookmarkId: generateUniqueId() 
             };
             storeBookmark(bookmarkData);
             scheduleNotificationsFromStorage();
@@ -55,33 +52,22 @@ function saveBookmark(data) {
     });
 }
 
-// Function to generate a unique ID
+
 function generateUniqueId() {
-    // Use a combination of timestamp and a random number to create a unique ID
+    
     return Date.now().toString() + '-' + Math.floor(Math.random() * 1000);
 }
 
 function storeBookmark(bookmarkData) {
-    console.log("storeBookmark - bg.js");
     chrome.storage.sync.get({ bookmarks: [] }, function (result) {
         var bookmarks = result.bookmarks;
         bookmarks.push(bookmarkData);
         chrome.storage.sync.set({ bookmarks: bookmarks }, function () {
-            console.log("Bookmark saved:", bookmarkData);
+            // console.log("Bookmark saved:", bookmarkData);
             chrome.runtime.sendMessage({
                 action: "successMessage",
                 data: "Bookmark saved successfully to: \nFolder - Bookmark Reminder Extension \nTab - " + bookmarkData.title
             });
-        });
-    });
-}
-
-function scheduleNotificationsFromStorage() {
-    console.log("scheduleNotificationFromStorage");
-    chrome.storage.sync.get({ bookmarks: [] }, function (result) {
-        var bookmarks = result.bookmarks;
-        bookmarks.forEach(function(bookmark) {
-            scheduleNotification(bookmark);
         });
     });
 }
@@ -102,7 +88,6 @@ function scheduleNotification(bookmarkData) {
 }
 
 function reminderNotif(websiteName, bookmarkData) {
-    console.log("reminderNotif");
     var notificationOptions = {
         type: "basic",
         iconUrl: "assets/hello.png",
@@ -116,14 +101,14 @@ function reminderNotif(websiteName, bookmarkData) {
                 return !(bookmark.title === bookmarkData.title && bookmark.url === bookmarkData.url && bookmark.bookmarkId === bookmarkData.bookmarkId);
             });
             chrome.storage.sync.set({ bookmarks: updatedBookmarks }, function() {
-                console.log("Bookmark removed after notification:", bookmarkData);
+                // console.log("Bookmark removed after notification:", bookmarkData);
             });
             chrome.storage.sync.get({ bookmarks: [] }, function (result) {
                 var bookmarks = result.bookmarks;
-                console.log("All Bookmarks:");
-                bookmarks.forEach(function(bookmark) {
-                    console.log(bookmark);
-                });
+                // console.log("All Bookmarks:");
+                // bookmarks.forEach(function(bookmark) {
+                //     console.log(bookmark);
+                // });
             });
         });
     });
@@ -136,6 +121,6 @@ function createBookmark(parentId, title, url, reminderDateTime)
         title: title + ' - ' + reminderDateTime,
         url: url,
     }, function (newBookmark) {
-        console.log("Bookmark saved:", newBookmark);
+        // console.log("Bookmark saved:", newBookmark);
     });
 }
