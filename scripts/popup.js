@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             var formattedReminderDateTime = formattedReminderDate + ' ' + formattedReminderTime;
 
-            // Bookmarking logic
             chrome.bookmarks.search({ title: "Bookmark Reminder Extension" }, function (results) {
                 if (results.length > 0) 
                 {
@@ -36,8 +35,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     bookmarkId: Date.now()
                 };
                 storeBookmark(bookmarkData);
-
-                // Schedule notifications based on all bookmarks in storage
                 scheduleNotificationsFromStorage();
             });            
         });
