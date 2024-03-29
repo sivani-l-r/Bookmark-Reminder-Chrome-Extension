@@ -6,14 +6,15 @@ chrome.storage.sync.get({ bookmarks: [] }, function (result) {
     });
 });
 
-chrome.storage.sync.get({ bookmarks: [] }, function (result) {
-    var bookmarks = result.bookmarks;
-    bookmarks.forEach(function(bookmark) {
-        scheduleNotification(bookmark);
-    });
-});
+// chrome.storage.sync.get({ bookmarks: [] }, function (result) {
+//     var bookmarks = result.bookmarks;
+//     bookmarks.forEach(function(bookmark) {
+//         scheduleNotification(bookmark);
+//     });
+// });
 
 setInterval(scheduleNotificationsFromStorage, 60000)
+
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     console.log("background.js - onMessage");
     if (message.action === "saveBookmark") {
@@ -114,8 +115,6 @@ function reminderNotif(websiteName, bookmarkData) {
             var updatedBookmarks = bookmarks.filter(function(bookmark) {
                 return !(bookmark.title === bookmarkData.title && bookmark.url === bookmarkData.url && bookmark.bookmarkId === bookmarkData.bookmarkId);
             });
-            
-            
             chrome.storage.sync.set({ bookmarks: updatedBookmarks }, function() {
                 console.log("Bookmark removed after notification:", bookmarkData);
             });
