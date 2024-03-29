@@ -13,6 +13,7 @@ chrome.storage.sync.get({ bookmarks: [] }, function (result) {
     });
 });
 
+setInterval(scheduleNotificationsFromStorage, 60000)
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     console.log("background.js - onMessage");
     if (message.action === "saveBookmark") {
@@ -111,8 +112,9 @@ function reminderNotif(websiteName, bookmarkData) {
         chrome.storage.sync.get({ bookmarks: [] }, function(result) {
             var bookmarks = result.bookmarks || [];
             var updatedBookmarks = bookmarks.filter(function(bookmark) {
-                return bookmark.title !== bookmarkData.title || bookmark.url !== bookmarkData.url || bookmark.bookmarkId !== bookmarkData.bookmarkId;
+                return !(bookmark.title === bookmarkData.title && bookmark.url === bookmarkData.url && bookmark.bookmarkId === bookmarkData.bookmarkId);
             });
+            
             
             chrome.storage.sync.set({ bookmarks: updatedBookmarks }, function() {
                 console.log("Bookmark removed after notification:", bookmarkData);
