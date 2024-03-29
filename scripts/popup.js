@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", function () {
     var reminderTime = document.getElementById("timePicker");
 
     submitBtn.addEventListener("click", function () {
-        console.log("Inside submitButton Event Listener")
         chrome.runtime.sendMessage({
             action: "saveBookmark",
             data: {
@@ -16,7 +15,6 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    console.log("background.js - onMessage");
     if (message.action === "successMessage") {
         displaySuccessMessage(message.data);
     }

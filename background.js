@@ -2,6 +2,7 @@
 chrome.alarms.create({ periodInMinutes: 1 });
 chrome.alarms.onAlarm.addListener(() => {
     scheduleNotificationsFromStorage();
+    console.log("SW Active")
 });
 
 // Retrieve bookmarks from storage and schedule notifications
@@ -63,7 +64,7 @@ function storeBookmark(bookmarkData) {
         var bookmarks = result.bookmarks;
         bookmarks.push(bookmarkData);
         chrome.storage.sync.set({ bookmarks: bookmarks }, function () {
-            // console.log("Bookmark saved:", bookmarkData);
+            console.log("Bookmark saved:", bookmarkData);
             chrome.runtime.sendMessage({
                 action: "successMessage",
                 data: "Bookmark saved successfully to: \nFolder - Bookmark Reminder Extension \nTab - " + bookmarkData.title
@@ -79,20 +80,20 @@ function scheduleNotification(bookmarkData) {
     var delay = reminderTimestamp - now;
 
     if (delay <= 0) {
-        reminderNotif(bookmarkData.title, bookmarkData);
+        reminderNotif(bookmarkData);
     } else {
         setTimeout(function () {
-            reminderNotif(bookmarkData.title, bookmarkData);
+            reminderNotif(bookmarkData);
         }, delay);
     }
 }
 
-function reminderNotif(websiteName, bookmarkData) {
+function reminderNotif(bookmarkData) {
     var notificationOptions = {
         type: "basic",
-        iconUrl: "assets/hello.png",
-        title: "Bookmark Reminder!",
-        message: "It's time to visit the bookmarked website: " + websiteName
+        iconUrl: "assets/bell.png",
+        title: "📌 BookMark Reminder!",
+        message: "Website Title :-" + bookmarkData.title + "\n Url :-" + bookmarkData.url
     };
     chrome.notifications.create(notificationOptions, function(notificationId) {
         chrome.storage.sync.get({ bookmarks: [] }, function(result) {
@@ -101,7 +102,7 @@ function reminderNotif(websiteName, bookmarkData) {
                 return !(bookmark.title === bookmarkData.title && bookmark.url === bookmarkData.url && bookmark.bookmarkId === bookmarkData.bookmarkId);
             });
             chrome.storage.sync.set({ bookmarks: updatedBookmarks }, function() {
-                // console.log("Bookmark removed after notification:", bookmarkData);
+                console.log("Bookmark removed after notification:", bookmarkData);
             });
             chrome.storage.sync.get({ bookmarks: [] }, function (result) {
                 var bookmarks = result.bookmarks;
@@ -121,6 +122,6 @@ function createBookmark(parentId, title, url, reminderDateTime)
         title: title + ' - ' + reminderDateTime,
         url: url,
     }, function (newBookmark) {
-        // console.log("Bookmark saved:", newBookmark);
+        console.log("Bookmark saved:", newBookmark);
     });
 }
