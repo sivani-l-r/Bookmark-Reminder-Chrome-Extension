@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
     var submitBtn = document.getElementById("submitBtn");
-    var successMessage = document.getElementById("userSuccessMessage");
     var reminderDate = document.getElementById("datePicker");
     var reminderTime = document.getElementById("timePicker");
 
@@ -29,30 +28,64 @@ document.addEventListener("DOMContentLoaded", function () {
                         createBookmark(newFolder.id, currentTab.title, currentUrl, formattedReminderDateTime);
                     });
                 }
-            });
 
-            // Reminder notification logic
-            var reminderTimestamp = new Date(formattedReminderDateTime).getTime();
-            console.log(reminderTimestamp);
-            var now = Date.now();
-            console.log(now);
-            var delay = reminderTimestamp - now;
-            console.log(delay);
+                var bookmarkData = {
+                    title: currentTab.title,
+                    url: currentUrl,
+                    reminderDateTime: formattedReminderDateTime
+                };
+                storeBookmark(bookmarkData);
 
-            if (delay > 0) {
-                setTimeout(function () {
-                    var notificationOptions = {
-                        type: "basic",
-                        iconUrl: "assets/hello.png", 
-                        title: "Reminder",
-                        message: "It's time to visit the bookmarked website: " + currentTab.title
-                    };
-                    chrome.notifications.create(notificationOptions);
-                }, delay);
-            }
+                // Schedule notifications based on all bookmarks in storage
+                scheduleNotificationsFromStorage();
+            });            
         });
     });
 });
+
+function storeBookmark(bookmarkData) {
+    chrome.storage.sync.get({ bookmarks: [] }, function (result) {
+        var bookmarks = result.bookmarks;
+        bookmarks.push(bookmarkData);
+        chrome.storage.sync.set({ bookmarks: bookmarks }, function () {
+            console.log("Bookmark saved:", bookmarkData);
+            displaySuccessMessage("Bookmark saved successfully to: \nFolder - Bookmark Reminder Extension \nTab - " + bookmarkData.title);
+        });
+    });
+}
+
+function scheduleNotificationsFromStorage() {
+    chrome.storage.sync.get({ bookmarks: [] }, function (result) {
+        var bookmarks = result.bookmarks;
+        bookmarks.forEach(function(bookmark) {
+            scheduleNotification(bookmark);
+        });
+    });
+}
+
+function scheduleNotification(bookmarkData) {
+    var reminderTimestamp = new Date(bookmarkData.reminderDateTime).getTime();
+    var now = Date.now();
+    var delay = reminderTimestamp - now;
+
+    if (delay <= 0) {
+        reminderNotif(bookmarkData.title);
+    } else {
+        setTimeout(function () {
+            reminderNotif(bookmarkData.title);
+        }, delay);
+    }
+}
+
+function reminderNotif(websiteName) {
+    var notificationOptions = {
+        type: "basic",
+        iconUrl: "assets/hello.png",
+        title: "Bookmark Reminder!",
+        message: "It's time to visit the bookmarked website: " + websiteName
+    };
+    chrome.notifications.create(notificationOptions);
+}
 
 function createBookmark(parentId, title, url, reminderDateTime) {
     var successMessage = document.getElementById("userSuccessMessage");
@@ -62,6 +95,17 @@ function createBookmark(parentId, title, url, reminderDateTime) {
         url: url,
     }, function (newBookmark) {
         console.log("Bookmark saved:", newBookmark);
-        successMessage.innerText = "Bookmark saved successfully to: \nFolder - Bookmark Reminder Extension  \nTab - " + title;
+        chrome.storage.sync.get({ bookmarks: [] }, function (result) {
+            var bookmarks = result.bookmarks;
+            console.log("All Bookmarks:");
+            bookmarks.forEach(function(bookmark) {
+                console.log(bookmark);
+            });
+        });
     });
+}
+
+function displaySuccessMessage(message) {
+    var successMessage = document.getElementById("userSuccessMessage");
+    successMessage.innerText = message;
 }

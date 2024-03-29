@@ -1,115 +1,126 @@
-
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    if (message.action === 'create_notification') {
-        console.log("create notif")
-        chrome.alarms.create('BOOKMARK_ALARM', {
-            delayInMinutes: delay / (1000 * 60) // Convert milliseconds to minutes
-        });
-        // Create notification when requested
-        // chrome.notifications.create('', {
-        //     title: 'Just wanted to notify you',
-        //     message: 'How great it is!',
-        //     iconUrl: 'assets/hello.png',
-        //     type: 'basic',
-        //     buttons: [
-        //         { title: 'Yes' },
-        //         { title: 'No' }
-        //     ]
-        // });
-        
-        // chrome.alarms.create('testAlarm', {
-        //     periodInMinutes: 0.1
-        // });
-    }
-});
-
-
-// chrome.alarms.onAlarm.addListener((alarm) => {
-//     if (alarm.name === "testAlarm") {
-//         // Handle the alarm when it triggers
-//         chrome.notifications.create('test', {
-//             type: 'basic',
-//             iconUrl: 'assets/hello.png',
-//             title: 'Test Message',
-//             message: 'You are awesome!',
-//             priority: 2
-//         });
-//     }
-// });
-
-
-popup.html 
-
-// Set the alarm with the calculated delay
-            // chrome.alarms.create('BOOKMARK_ALARM', {
-            //     delayInMinutes: delay / (1000 * 60) // Convert milliseconds to minutes
-            // });
-
-
-//pop.Just
-
-chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    var currentTab = tabs[0];
-    var currentUrl = currentTab.url;
-    document.getElementById("currentWebsite").innerText = "Current website: " + currentUrl;
-});
-
 document.addEventListener("DOMContentLoaded", function () {
     var submitBtn = document.getElementById("submitBtn");
     var successMessage = document.getElementById("userSuccessMessage");
     var reminderDate = document.getElementById("datePicker");
-    var reminderTime = document.getElementById("timePicker"); 
-  
+    var reminderTime = document.getElementById("timePicker");
+
     submitBtn.addEventListener("click", function () {
         chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
             var currentTab = tabs[0];
             var currentUrl = currentTab.url;
-    
+
             var formattedReminderDate = reminderDate.value;
             var formattedReminderTime = reminderTime.value;
-    
+
             var formattedReminderDateTime = formattedReminderDate + ' ' + formattedReminderTime;
-    
+
+            // Bookmarking logic
             chrome.bookmarks.search({ title: "Bookmark Reminder Extension" }, function (results) {
-                if (results.length > 0) {
+                if (results.length > 0) 
+                {
                     var existingFolder = results[0];
-                    chrome.bookmarks.create({
-                        parentId: existingFolder.id,
-                        title: currentTab.title + ' - ' + formattedReminderDateTime,
-                        url: currentUrl,
-                    }, function (newBookmark) {
-                        console.log("Bookmark saved:", newBookmark);
-                        successMessage.innerText = "Bookmark saved successfully to: \nFolder - " + existingFolder.title + "\nTab - " + currentTab.title;
-                    });
-                } else {
+                    createBookmark(existingFolder.id, currentTab.title, currentUrl, formattedReminderDateTime);
+                } 
+                else 
+                {
                     chrome.bookmarks.create({
                         title: "Bookmark Reminder Extension"
                     }, function (newFolder) {
-                        console.log("Bookmark folder created:", newFolder);
-    
-                        chrome.bookmarks.create({
-                            parentId: newFolder.id,
-                            title: currentTab.title + ' - ' + formattedReminderDateTime,
-                            url: currentUrl,
-                        }, function (newBookmark) {
-                            console.log("Bookmark saved:", newBookmark);
-                            successMessage.innerText = "Bookmark saved successfully to: \nFolder - " + newFolder.title + "\nTab - " + currentTab.title;
-                        });
+                        createBookmark(newFolder.id, currentTab.title, currentUrl, formattedReminderDateTime);
                     });
                 }
-            });
-        
-            var reminderTimestamp = new Date(formattedReminderDateTime).getTime();
-            var now = Date.now();
-            var delay = reminderTimestamp - now;
-            
-            
+
+                var bookmarkData = {
+                    title: currentTab.title,
+                    url: currentUrl,
+                    reminderDateTime: formattedReminderDateTime
+                };
+                storeBookmark(bookmarkData);
+
+                // Schedule notification if necessary
+                scheduleNotification(bookmarkData);
+                // var reminderTimestamp = new Date(formattedReminderDateTime).getTime();
+                // console.log(reminderTimestamp);
+                // var now = Date.now();
+                // console.log(now);
+                // var delay = reminderTimestamp - now;
+                // console.log(delay);
+
+                // if(delay<=0)
+                // {
+                //     setTimeout(function () {
+                //         var notificationOptions = {
+                //             type: "basic",
+                //             iconUrl: "assets/hello.png", 
+                //             title: "Bookmark Reminder!",
+                //             message: "It's time to visit the bookmarked website: "
+                //         };
+                //         chrome.notifications.create(notificationOptions);
+                //     }, delay);
+                //     // reminderNotif(currentTab.title, reminderTimestamp,now,delay);
+                // }
+            });            
+           
         });
-    
-        
     });
-    
 });
 
+function storeBookmark(bookmarkData) {
+    chrome.storage.sync.get({ bookmarks: [] }, function (result) {
+        var bookmarks = result.bookmarks;
+        bookmarks.push(bookmarkData);
+        chrome.storage.sync.set({ bookmarks: bookmarks }, function () {
+            console.log("Bookmark saved:", bookmarkData);
+            displaySuccessMessage("Bookmark saved successfully to: \nFolder - Bookmark Reminder Extension \nTab - " + bookmarkData.title);
+        });
+    });
+}
+
+function scheduleNotification(bookmarkData) {
+    var reminderTimestamp = new Date(bookmarkData.reminderDateTime).getTime();
+    var now = Date.now();
+    var delay = reminderTimestamp - now;
+
+    if (delay <= 0) {
+        reminderNotif(bookmarkData.title);
+    } else {
+        setTimeout(function () {
+            reminderNotif(bookmarkData.title);
+        }, delay);
+    }
+}
+
+function reminderNotif(websiteName) {
+    var notificationOptions = {
+        type: "basic",
+        iconUrl: "assets/hello.png",
+        title: "Bookmark Reminder!",
+        message: "It's time to visit the bookmarked website: " + websiteName
+    };
+    chrome.notifications.create(notificationOptions);
+}
 
 
+function createBookmark(parentId, title, url, reminderDateTime) {
+    var successMessage = document.getElementById("userSuccessMessage");
+    chrome.bookmarks.create({
+        parentId: parentId,
+        title: title + ' - ' + reminderDateTime,
+        url: url,
+    }, function (newBookmark) {
+        console.log("Bookmark saved:", newBookmark);
+        chrome.storage.sync.get({ bookmarks: [] }, function (result) {
+            var bookmarks = result.bookmarks;
+            console.log("All Bookmarks:");
+            bookmarks.forEach(function(bookmark) {
+                console.log(bookmark);
+            });
+        });
+    });
+}
+
+
+function displaySuccessMessage(message) {
+    var successMessage = document.getElementById("userSuccessMessage");
+    successMessage.innerText = message;
+}
