@@ -32,7 +32,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 var bookmarkData = {
                     title: currentTab.title,
                     url: currentUrl,
-                    reminderDateTime: formattedReminderDateTime
+                    reminderDateTime: formattedReminderDateTime,
+                    bookmarkId: Date.now()
                 };
                 storeBookmark(bookmarkData);
 
@@ -69,23 +70,46 @@ function scheduleNotification(bookmarkData) {
     var delay = reminderTimestamp - now;
 
     if (delay <= 0) {
-        reminderNotif(bookmarkData.title);
+        reminderNotif(bookmarkData.title, bookmarkData);
+
     } else {
         setTimeout(function () {
-            reminderNotif(bookmarkData.title);
+            reminderNotif(bookmarkData.title, bookmarkData);
+
         }, delay);
     }
 }
 
-function reminderNotif(websiteName) {
+function reminderNotif(websiteName, bookmarkData) {
     var notificationOptions = {
         type: "basic",
         iconUrl: "assets/hello.png",
         title: "Bookmark Reminder!",
         message: "It's time to visit the bookmarked website: " + websiteName
     };
-    chrome.notifications.create(notificationOptions);
+    chrome.notifications.create(notificationOptions, function(notificationId) {
+        chrome.storage.sync.get({ bookmarks: [] }, function(result) {
+            var bookmarks = result.bookmarks || [];
+            var updatedBookmarks = bookmarks.filter(function(bookmark) {
+                return bookmark.bookmarkId !== bookmarkData.bookmarkId;
+            });
+            
+            chrome.storage.sync.set({ bookmarks: updatedBookmarks }, function() {
+                console.log("Bookmark removed after notification:", bookmarkData);
+                chrome.storage.sync.get({ bookmarks: [] }, function (result) {
+                    var bookmarks = result.bookmarks;
+                    console.log("All Bookmarks:");
+                    bookmarks.forEach(function(bookmark) {
+                        console.log(bookmark);
+                    });
+                });
+            });
+        });
+    });
 }
+
+
+
 
 function createBookmark(parentId, title, url, reminderDateTime) {
     var successMessage = document.getElementById("userSuccessMessage");
