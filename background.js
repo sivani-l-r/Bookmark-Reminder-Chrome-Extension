@@ -6,12 +6,12 @@ chrome.storage.sync.get({ bookmarks: [] }, function (result) {
     });
 });
 
-// chrome.storage.sync.get({ bookmarks: [] }, function (result) {
-//     var bookmarks = result.bookmarks;
-//     bookmarks.forEach(function(bookmark) {
-//         scheduleNotification(bookmark);
-//     });
-// });
+chrome.storage.sync.get({ bookmarks: [] }, function (result) {
+    var bookmarks = result.bookmarks;
+    bookmarks.forEach(function(bookmark) {
+        scheduleNotification(bookmark);
+    });
+});
 
 setInterval(scheduleNotificationsFromStorage, 60000)
 
