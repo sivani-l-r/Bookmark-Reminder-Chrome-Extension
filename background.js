@@ -1,11 +1,10 @@
-// Set up periodic alarm to keep service worker active
 chrome.alarms.create({ periodInMinutes: 1 });
 chrome.alarms.onAlarm.addListener(() => {
     scheduleNotificationsFromStorage();
-    console.log("SW Active")
+    // console.log("SW Active")
 });
 
-// Retrieve bookmarks from storage and schedule notifications
+
 function scheduleNotificationsFromStorage() {
     chrome.storage.sync.get({ bookmarks: [] }, function (result) {
         var bookmarks = result.bookmarks;
@@ -25,9 +24,9 @@ function saveBookmark(data) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         var currentTab = tabs[0];
         var currentUrl = currentTab.url;
-        var formattedReminderDateTime = data.formattedReminderDate + ' ' + data.formattedReminderTime;
-        var reminderNote = data.note;
-        chrome.bookmarks.search({ title: "Bookmark Reminder Extension" }, function (results) 
+        var formattedReminderDateTime = data.formattedReminderDate + ' ' + (data.formattedReminderTime || '00:00');
+        var reminderNote = data.note || 'No Note.';
+        chrome.bookmarks.search({ title: "Bookmark Alert Extension" }, function (results) 
         {
             if (results.length > 0) 
             {
@@ -36,7 +35,7 @@ function saveBookmark(data) {
             } 
             else 
             {
-                chrome.bookmarks.create({ title: "Bookmark Reminder Extension" }, function (newFolder) {
+                chrome.bookmarks.create({ title: "Bookmark Alert Extension" }, function (newFolder) {
                     createBookmark(newFolder.id, currentTab.title, currentUrl, formattedReminderDateTime);
                 });
             }
@@ -50,6 +49,8 @@ function saveBookmark(data) {
             };
             storeBookmark(bookmarkData);
             scheduleNotificationsFromStorage();
+            
+
         });
     });
 }
@@ -68,8 +69,11 @@ function storeBookmark(bookmarkData) {
             console.log("Bookmark saved:", bookmarkData);
             chrome.runtime.sendMessage({
                 action: "successMessage",
-                data: "Bookmark saved successfully to: \nFolder - Bookmark Reminder Extension \nTab - " + bookmarkData.title
+                data: `Bookmark saved successfully to:
+                        Folder - Bookmark Alert Extension
+                    Url - ${bookmarkData.url}`
             });
+            
         });
     });
 }
@@ -93,8 +97,8 @@ function reminderNotif(bookmarkData) {
     var notificationOptions = {
         type: "basic",
         iconUrl: "assets/bell.png",
-        title: "📌 BookMark Reminder!",
-        message: "Website Title: " + bookmarkData.title + "\nURL: " + bookmarkData.url + "\nNote: " + bookmarkData.note
+        title: "📌 Bookmark Alert!",
+        message: "You had set a reminder for \n Website Title: " + bookmarkData.title + " \n Tab: " + bookmarkData.title +  " \n URL: " + bookmarkData.url + "\nNote: " + bookmarkData.note
 
     };
     chrome.notifications.create(notificationOptions, function(notificationId) {
@@ -104,7 +108,7 @@ function reminderNotif(bookmarkData) {
                 return !(bookmark.title === bookmarkData.title && bookmark.url === bookmarkData.url && bookmark.bookmarkId === bookmarkData.bookmarkId);
             });
             chrome.storage.sync.set({ bookmarks: updatedBookmarks }, function() {
-                console.log("Bookmark removed after notification:", bookmarkData);
+                // console.log("Bookmark removed after notification:", bookmarkData);
             });
             chrome.storage.sync.get({ bookmarks: [] }, function (result) {
                 var bookmarks = result.bookmarks;

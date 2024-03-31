@@ -23,13 +23,11 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
 });
 
 function displaySuccessMessage(message) {
-    // var successMessage = document.getElementById("userSuccessMessage");
-    // successMessage.innerText = message;
     document.getElementById('userSuccessMessageContainer').style.display = 'block';
     document.getElementById('userSuccessMessage').textContent = message;
 }
 
-document.getElementById("creditsBtn").addEventListener("click", function() {
-    var creditsContainer = document.getElementById("creditsContainer");
-    creditsContainer.style.display = (creditsContainer.style.display === "block") ? "none" : "block";
+document.getElementById("datePicker").addEventListener("change", function() {
+    var submitBtn = document.getElementById("submitBtn");
+    submitBtn.disabled = !this.checkValidity(); // Disable the button if date input is invalid
   });

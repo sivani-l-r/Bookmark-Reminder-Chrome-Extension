@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
-    "name": "Web Bookmark Reminder",
-    "description": "Get reminders for websites you bookmark.",
+    "name": "Bookmark Alert",
+    "description": "Bookmark Alert helps you stay organized by providing reminders for websites you bookmark. Never forget to revisit important pages with this handy extension.",
     "version": "1.0.0",
     "author": "Sivani",
     "permissions": [
@@ -20,6 +20,7 @@
     },
     "icons": {
         "16": "assets/icon16.png",
+        "48": "assets/icon48.png",
         "128": "assets/icon128.png"
     }
     

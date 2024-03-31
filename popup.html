@@ -6,7 +6,6 @@
   <title>Bookmark Reminder</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> <!-- Font Awesome for icons -->
   <style>
-    /* CSS */
     body {
       background-color: #f4f4f4;
       display: flex;
@@ -28,7 +27,7 @@
     }
 
     h1 {
-      color: #333;
+      color: #ff69b4;
       margin-bottom: 30px;
       font-size: 24px;
     }
@@ -50,6 +49,18 @@
       font-size: 16px;
     }
 
+    input[type="date"]:required:invalid {
+      border: 1px solid red;
+    }
+
+    input[type="date"]:required:valid {
+      border: 1px solid #ddd;
+    }
+
+    input[type="date"]:required:valid:focus {
+      outline: none;
+    }
+
     input[type="date"],
     input[type="time"] {
       background-color: #f9f9f9;
@@ -65,20 +76,6 @@
 
     #submitBtn:hover {
       background-color: #0056b3;
-    }
-
-    #creditsBtn {
-      background-color: #ffc107; 
-      color: #333; 
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      font-size: 14px; 
-      padding: 8px 16px; 
-      border-radius: 6px; 
-    }
-
-    #creditsBtn:hover {
-      background-color: #ffca28; 
     }
 
     #userSuccessMessageContainer {
@@ -97,51 +94,19 @@
     .icon {
       margin-right: 8px;
     }
-
-    #creditsContainer {
-      display: none; 
-      background-color: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      margin-top: 20px;
-      text-align: left;
-      font-size: 14px;
-      width: 100%; 
-    }
-
-    #creditsContainer a {
-      display: block;
-      margin-bottom: 10px;
-      color: #007bff;
-      text-decoration: none;
-      transition: color 0.3s ease;
-    }
-    #creditsContainer a:hover {
-      color: #0056b3;
-    }
   </style>
 </head>
 <body>
   <div id="container">
-    <h1><i class="fas fa-bookmark icon"></i> Bookmark Reminder</h1>
-    <p id="currentWebsite">You're about to bookmark the current website.</p>
-    <input type="date" id="datePicker" placeholder="Select date">
+    <h1>Bookmark Alert</h1>
+    <input type="date" id="datePicker" placeholder="Select date" required>
     <input type="time" id="timePicker" placeholder="Select time">
     <p></p>
     <textarea id="customMessage" placeholder="Add a custom message"></textarea> 
-    <button id="submitBtn">Bookmark</button>
-    <button id="creditsBtn">Credits</button>
+    <button id="submitBtn" disabled>Bookmark</button>
     <div id="userSuccessMessageContainer">
       <p id="userSuccessMessage"></p>
     </div>
-  </div>
-
-  <!-- Credits Container -->
-  <div id="creditsContainer">
-    <h2>Credits</h2>
-    <a href="https://www.flaticon.com/free-icons/seo-and-web" title="seo and web icons" target="_blank">Icons by Pixel perfect - Flaticon</a>
-    <a href="https://www.flaticon.com/free-icons/bell" title="bell icons" target="_blank">Bell icons created by Freepik - Flaticon</a>
   </div>
 
   <script src="scripts/popup.js"></script>
