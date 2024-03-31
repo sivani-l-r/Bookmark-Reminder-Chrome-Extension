@@ -45,7 +45,7 @@ function saveBookmark(data) {
                 url: currentUrl,
                 reminderDateTime: formattedReminderDateTime,
                 bookmarkId: generateUniqueId() ,
-                note: data.note
+                note: reminderNote
             };
             storeBookmark(bookmarkData);
             scheduleNotificationsFromStorage();
@@ -66,7 +66,7 @@ function storeBookmark(bookmarkData) {
         var bookmarks = result.bookmarks;
         bookmarks.push(bookmarkData);
         chrome.storage.sync.set({ bookmarks: bookmarks }, function () {
-            console.log("Bookmark saved:", bookmarkData);
+        //     console.log("Bookmark saved:", bookmarkData);
             chrome.runtime.sendMessage({
                 action: "successMessage",
                 data: `Bookmark saved successfully to:
@@ -98,7 +98,7 @@ function reminderNotif(bookmarkData) {
         type: "basic",
         iconUrl: "assets/bell.png",
         title: "📌 Bookmark Alert!",
-        message: "You had set a reminder for \n Website Title: " + bookmarkData.title + " \n Tab: " + bookmarkData.title +  " \n URL: " + bookmarkData.url + "\nNote: " + bookmarkData.note
+        message: "\nTab: " + bookmarkData.title  + "\nNote: " + bookmarkData.note +  "\nURL: " + bookmarkData.url 
 
     };
     chrome.notifications.create(notificationOptions, function(notificationId) {
@@ -128,6 +128,6 @@ function createBookmark(parentId, title, url, reminderDateTime)
         title: title + ' - ' + reminderDateTime,
         url: url,
     }, function (newBookmark) {
-        console.log("Bookmark saved:", newBookmark);
+        // console.log("Bookmark saved:", newBookmark);
     });
 }
