@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Bookmark Alert",
-    "description": "Bookmark Alert helps you stay organized by providing reminders for websites you bookmark. Never forget to revisit important pages with this handy extension.",
+    "description": "Bookmark Alert: Stay organized with reminders for bookmarked sites. Never miss important pages again!",
     "version": "1.0.0",
     "author": "Sivani",
     "permissions": [
