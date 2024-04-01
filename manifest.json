@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Bookmark Alert",
     "description": "Bookmark Alert: Stay organized with reminders for bookmarked sites. Never miss important pages again!",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "Sivani",
     "permissions": [
       "notifications",

@@ -17,7 +17,9 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    if (message.action === "successMessage") {
+    if (message.action === "saveBookmark") {
+        saveBookmark(message.data);
+    } else if (message.action === "successMessage") {
         displaySuccessMessage(message.data);
     }
 });

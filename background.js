@@ -59,7 +59,6 @@ function saveBookmark(data) {
 
 
 function generateUniqueId() {
-    
     return Date.now().toString() + '-' + Math.floor(Math.random() * 1000);
 }
 
@@ -68,7 +67,6 @@ function storeBookmark(bookmarkData) {
         var bookmarks = result.bookmarks;
         bookmarks.push(bookmarkData);
         chrome.storage.sync.set({ bookmarks: bookmarks }, function () {
-        //     console.log("Bookmark saved:", bookmarkData);
             chrome.runtime.sendMessage({
                 action: "successMessage",
                 data: `Bookmark saved successfully to:
@@ -81,11 +79,9 @@ function storeBookmark(bookmarkData) {
 }
 
 function scheduleNotification(bookmarkData) {
-    
     var reminderTimestamp = new Date(bookmarkData.reminderDateTime).getTime();
     var now = Date.now();
     var delay = reminderTimestamp - now;
-
     if (delay <= 0) {
         reminderNotif(bookmarkData);
     } else {
@@ -115,11 +111,10 @@ function reminderNotif(bookmarkData) {
     chrome.notifications.onButtonClicked.addListener(function(notificationId, buttonIndex) {
         switch (buttonIndex) {
             case 0:
-                console.log("Button 1 clicked");
                 chrome.tabs.create({ url: bookmarkData.url });
                 break;
             case 1:
-                console.log("Button 2 clicked");
+                snoozeBookmark(bookmarkData);
                 break;
             default:
                 break;
@@ -135,13 +130,6 @@ function reminderNotif(bookmarkData) {
             chrome.storage.sync.set({ bookmarks: updatedBookmarks }, function() {
                 // console.log("Bookmark removed after notification:", bookmarkData);
             });
-            chrome.storage.sync.get({ bookmarks: [] }, function (result) {
-                var bookmarks = result.bookmarks;
-                // console.log("All Bookmarks:");
-                // bookmarks.forEach(function(bookmark) {
-                //     console.log(bookmark);
-                // });
-            });
         });
     });
 }
@@ -155,4 +143,52 @@ function createBookmark(parentId, title, url, reminderDateTime)
     }, function (newBookmark) {
         // console.log("Bookmark saved:", newBookmark);
     });
+}
+
+function snoozeBookmark(data) {
+    var tab = data.title;
+    var url = data.url;
+    var formattedReminderDate = data.reminderDateTime.substring(0, 10);
+    var formattedReminderTime = addHourToTime(data.reminderDateTime.substring(11));
+    var formattedReminderDateTime = formattedReminderDate + ' ' + (formattedReminderTime || '00:00');
+    var reminderNote = data.note || 'No Note.';
+    var snoozeBookmarkData = {
+        title: tab,
+        url: url,
+        reminderDateTime: formattedReminderDateTime,
+        bookmarkId: generateUniqueId(),
+        note: reminderNote
+    };
+    
+    // console.log("Snooze Bookmark Data:", snoozeBookmarkData);
+    storeSnoozedBookmark(snoozeBookmarkData);
+    scheduleNotificationsFromStorage();
+}
+
+function storeSnoozedBookmark(bookmarkData) {
+    chrome.storage.sync.get({ bookmarks: [] }, function (result) {
+        var bookmarks = result.bookmarks;
+        bookmarks.push(bookmarkData);
+        
+        // // Log all bookmarks after pushing new bookmarkData
+        // console.log("All Bookmarks:");
+        // bookmarks.forEach(function(bookmark) {
+        //     console.log(bookmark);
+        // });
+        chrome.storage.sync.set({ bookmarks: bookmarks }, function () {
+            // console.log("Bookmarks updated successfully.");
+        });
+    });
+}
+
+
+
+
+function addHourToTime(time) {
+    var parts = time.split(":");
+    var hours = parseInt(parts[0]);
+    var minutes = parseInt(parts[1]);
+    hours += 1;
+    hours = hours % 24;
+    return (hours < 10 ? '0' : '') + hours + ":" + (minutes < 10 ? '0' : '') + minutes;
 }
