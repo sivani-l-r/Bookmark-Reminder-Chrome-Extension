@@ -1,0 +1,155 @@
+popup 
+
+document.addEventListener("DOMContentLoaded", function () {
+    var submitBtn = document.getElementById("submitBtn");
+    var reminderDate = document.getElementById("datePicker");
+    var reminderTime = document.getElementById("timePicker");
+    var reminderNote = document.getElementById("customMessage");
+    var repeatOption = document.getElementById("repeatOption");
+
+    submitBtn.addEventListener("click", function () {
+        var repeatValue = repeatOption.value;
+        chrome.runtime.sendMessage({
+            action: "saveBookmark",
+            data: {
+                formattedReminderDate: reminderDate.value,
+                formattedReminderTime: reminderTime.value,
+                note: reminderNote.value,
+                repeat: repeatValue
+            }
+        });
+    });
+});
+
+document.getElementById("datePicker").addEventListener("change", function() {
+    var submitBtn = document.getElementById("submitBtn");
+    submitBtn.disabled = !this.checkValidity(); // Disable the button if date input is invalid
+});
+
+
+bg 
+
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+    if (message.action === "saveBookmark") {
+        saveBookmark(message.data);
+    }
+});
+
+function saveBookmark(data) {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        var currentTab = tabs[0];
+        var currentUrl = currentTab.url;
+        var formattedReminderDateTime = data.formattedReminderDate + ' ' + (data.formattedReminderTime || '00:00');
+        var reminderNote = data.note || 'No Note.';
+        var repeatOption = data.repeat;
+
+        chrome.bookmarks.search({ title: "Bookmark Alert Extension" }, function (results) 
+        {
+            if (results.length > 0) 
+            {
+                var existingFolder = results[0];
+                createBookmark(existingFolder.id, currentTab.title, currentUrl, formattedReminderDateTime);
+            } 
+            else 
+            {
+                chrome.bookmarks.create({ title: "Bookmark Alert Extension" }, function (newFolder) {
+                    createBookmark(newFolder.id, currentTab.title, currentUrl, formattedReminderDateTime);
+                });
+            }
+
+            var bookmarkData = {
+                title: currentTab.title,
+                url: currentUrl,
+                reminderDateTime: formattedReminderDateTime,
+                bookmarkId: generateUniqueId() ,
+                note: reminderNote,
+                repeat: repeatOption
+            };
+            storeBookmark(bookmarkData);
+            scheduleNotificationsFromStorage();
+        });
+    });
+}
+
+function scheduleNotification(bookmarkData) {
+    var reminderTimestamp = new Date(bookmarkData.reminderDateTime).getTime();
+    var now = Date.now();
+    var delay = reminderTimestamp - now;
+
+    if (delay <= 0) {
+        reminderNotif(bookmarkData);
+    } else {
+        setTimeout(function () {
+            reminderNotif(bookmarkData);
+        }, delay);
+    }
+
+    if (bookmarkData.repeat !== "none") {
+        scheduleRepeatedNotification(bookmarkData);
+    }
+}
+
+function scheduleRepeatedNotification(bookmarkData) {
+    var repeatValue = bookmarkData.repeat;
+    var interval;
+
+    switch (repeatValue) {
+        case "daily":
+            interval = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+            break;
+        case "weekly":
+            interval = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+            break;
+        case "biweekly":
+            interval = 14 * 24 * 60 * 60 * 1000; // 14 days in milliseconds
+            break;
+        // Add more cases for other repeat options as needed
+        default:
+            break;
+    }
+
+    chrome.alarms.create(bookmarkData.bookmarkId, { delayInMinutes: interval / (60 * 1000), periodInMinutes: interval / (60 * 1000) });
+}
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+    scheduleNotificationsFromStorage();
+});
+
+function generateUniqueId() {
+    return Date.now().toString() + '-' + Math.floor(Math.random() * 1000);
+}
+
+function storeBookmark(bookmarkData) {
+    chrome.storage.sync.get({ bookmarks: [] }, function (result) {
+        var bookmarks = result.bookmarks;
+        bookmarks.push(bookmarkData);
+        chrome.storage.sync.set({ bookmarks: bookmarks });
+    });
+}
+
+function scheduleNotificationsFromStorage() {
+    chrome.storage.sync.get({ bookmarks: [] }, function (result) {
+        var bookmarks = result.bookmarks;
+        bookmarks.forEach(function(bookmark) {
+            scheduleNotification(bookmark);
+        });
+    });
+}
+
+function reminderNotif(bookmarkData) {
+    var notificationOptions = {
+        type: "basic",
+        iconUrl: "assets/bell.png",
+        title: "📌 Bookmark Alert!",
+        message: "\nTab: " + bookmarkData.title  + "\nNote: " + bookmarkData.note +  "\nURL: " + bookmarkData.url 
+    };
+    chrome.notifications.create(notificationOptions);
+}
+
+function createBookmark(parentId, title, url, reminderDateTime) {
+    chrome.bookmarks.create({
+        parentId: parentId,
+        title: title + ' - ' + reminderDateTime,
+        url: url,
+    });
+}

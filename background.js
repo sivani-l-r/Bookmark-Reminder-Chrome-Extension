@@ -1,8 +1,10 @@
+
 chrome.alarms.create({ periodInMinutes: 1 });
 chrome.alarms.onAlarm.addListener(() => {
     scheduleNotificationsFromStorage();
     // console.log("SW Active")
 });
+
 
 
 function scheduleNotificationsFromStorage() {
@@ -98,10 +100,33 @@ function reminderNotif(bookmarkData) {
         type: "basic",
         iconUrl: "assets/bell.png",
         title: "📌 Bookmark Alert!",
-        message: "\nTab: " + bookmarkData.title  + "\nNote: " + bookmarkData.note +  "\nURL: " + bookmarkData.url 
+        message: "\nTab: " + bookmarkData.title  + "\nNote: " + bookmarkData.note +  "\nURL: " + bookmarkData.url ,
+        buttons: [
+            { 
+                title: "Visit Website"
+         },
+            { 
+                title: "Snooze",
+            }
+        ]
 
     };
-    chrome.notifications.create(notificationOptions, function(notificationId) {
+
+    chrome.notifications.onButtonClicked.addListener(function(notificationId, buttonIndex) {
+        switch (buttonIndex) {
+            case 0:
+                console.log("Button 1 clicked");
+                chrome.tabs.create({ url: bookmarkData.url });
+                break;
+            case 1:
+                console.log("Button 2 clicked");
+                break;
+            default:
+                break;
+        }
+    });
+    
+    chrome.notifications.create(notificationOptions, function callback(notificationId) {
         chrome.storage.sync.get({ bookmarks: [] }, function(result) {
             var bookmarks = result.bookmarks || [];
             var updatedBookmarks = bookmarks.filter(function(bookmark) {

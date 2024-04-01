@@ -94,6 +94,27 @@
     .icon {
       margin-right: 8px;
     }
+
+    #repeatOptionContainer {
+    display: flex;
+    align-items: center;
+    }
+
+    #repeatOptionLabel {
+        margin-right: 20px;
+    }
+
+
+    #repeatOption {
+      width: calc(100% - 40px);
+      border-radius: 6px;
+      font-size: 10px;
+      height: 30px;
+    }
+    #repeatOption option {
+      font-size: 15px; 
+    }
+
   </style>
 </head>
 <body>
@@ -103,6 +124,16 @@
     <input type="time" id="timePicker" placeholder="Select time">
     <p></p>
     <textarea id="customMessage" placeholder="Add a custom message"></textarea> 
+    <div id="repeatOptionContainer">
+      <label for="repeatOption" id="repeatOptionLabel">Repeat: </label>
+      <select id="repeatOption">
+          <option value="none">Do not repeat</option>
+          <option value="daily">Every day</option>
+          <option value="weekly">Every week</option>
+          <option value="biweekly">Every other week</option>
+          <!-- Add more options as needed -->
+      </select>
+  </div>
     <button id="submitBtn" disabled>Bookmark</button>
     <div id="userSuccessMessageContainer">
       <p id="userSuccessMessage"></p>
